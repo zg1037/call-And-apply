@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>call 的实现</title>
+</head>
+
+<body>
+    <p>call()方法的意思就是调用某个函数或者方法并且改变this的指向</p>
+    <p>call(this,args) 该方法传入两个参数</p>
+    <p>第一个参数是this指向的对象，第二个参数是一个参数列表</p>
+    <p>当第一个参数为null、undefined的时候，默认指向window</p>
+</body>
+<script>
+    // call方法的使用
+    var test = {
+        name: '张三'
+    }
+    function demo(name) {
+        console.log(this.name)  
+     }
+
+    demo.call(test, "李四")   // 张三
+
+    // 以上方式其实就是执行了demo函数并把this指向了test
+
+    var test = {
+        name: '张三',
+        demo: function () {
+            console.log(this.name)
+        }
+    }
+
+    test.demo('李四');
+
+    // 所以手动实现call方法可以尝试
+    // 将函数设为对象的属性
+    // 执行该函数
+    // 删除对象属性
+    // fn是随便起的，是test对象的一个属性名而已
+    test.fn = demo;
+    test.fn();
+    delete test.fn;
+
+    Function.prototype.testCall=function(context){
+        // 使用this 可以获取到调用testCall的函数
+        context.fn=this;
+        context.fn();
+        delete context.fn;
+    }
+
+    var foo={
+        name:'新张三'
+    }
+
+    function demo2(){
+        console.log(this.name)
+    }
+    demo2.testCall(foo)
+
+    // 接下来给call方法添加参数
+    Function.prototype.testCall = function (context) {
+        var context = context || window;
+        context.fn = this;
+        let arr = [];
+        for (let i = 1; i < arguments.length; i++)
+            arr.push(arguments[i])
+
+        context.fn(...arr);
+        delete context.fn;
+    }
+
+    var foo = {
+        value: '新张三'
+    }
+
+    function demo2(name, age) {
+        console.log(name)
+        console.log(age)
+        console.log(this.value)
+    }
+    demo2.testCall(foo, 'demoname', 'demoage')
+
+
+    // apply实现
+    Function.prototype.$apply = function (context, arr) {
+        var context = Object(context) || window;
+        context.fn = this;
+
+
+        let s = Array.isArray(arr);
+        if (s) {
+            context.fn(...arr)
+        } else {
+            throw Error("arr required Array")
+        }
+        delete context.fn;
+    }
+    var foo = {
+        value: '新张三'
+    }
+
+    function demo2(name, age) {
+        console.log(name)
+        console.log(age)
+        console.log(this.value)
+    }
+    demo2.$apply(foo, 'demoname', 'demoage')
+
+</script>
+
+</html>
